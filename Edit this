@@ -1,0 +1,79 @@
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public float moveSpeed = 5f;
+    public GameObject boatPrefab;
+    public Transform boatSpawnPoint;
+    private bool inBoat = false;
+    private GameObject currentBoat;
+
+    void Update()
+    {
+        MovePlayer();
+
+        // Check water interaction
+        if (!inBoat && IsInWater())
+        {
+            SpawnBoat();
+        }
+
+        // Fishing input
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            Fishing();
+        }
+    }
+
+    void MovePlayer()
+    {
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        Vector3 move = new Vector3(h, 0, v) * moveSpeed * Time.deltaTime;
+
+        if (inBoat && currentBoat != null)
+        {
+            currentBoat.transform.Translate(move);
+        }
+        else
+        {
+            transform.Translate(move);
+        }
+    }
+
+    bool IsInWater()
+    {
+        // Simple water check: adjust layer or tag in Unity
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, 1f))
+        {
+            return hit.collider.CompareTag("Water");
+        }
+        return false;
+    }
+
+    void SpawnBoat()
+    {
+        if (boatPrefab && currentBoat == null)
+        {
+            currentBoat = Instantiate(boatPrefab, boatSpawnPoint.position, Quaternion.identity);
+            inBoat = true;
+            transform.SetParent(currentBoat.transform); // Player boards the boat
+            transform.localPosition = Vector3.zero;
+        }
+    }
+
+    void Fishing()
+    {
+        // Simple fishing chance
+        int chance = Random.Range(0, 2); // 50% chance
+        if (chance == 1)
+        {
+            Debug.Log("You caught a fish!");
+        }
+        else
+        {
+            Debug.Log("No fish this time...");
+        }
+    }
+}
